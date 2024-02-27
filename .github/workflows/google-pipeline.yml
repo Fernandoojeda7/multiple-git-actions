@@ -50,7 +50,8 @@ jobs:
       # Crear el repositorio en Artifact Registry
       - name: Crear repositorio en Artifact Registry
         run: |
-          gcloud artifacts repositories create $GKE_REPO --repository-format=docker --location=$GKE_LOCATION --
+          gcloud artifacts repositories create $GKE_REPO --repository-format=docker --location=$GKE_LOCATION
+
 
       - name: Obtener credenciales de Kubernetes
         run: gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_ZONE --project $PROJECT_ID
