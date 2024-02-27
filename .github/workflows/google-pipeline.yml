@@ -22,10 +22,13 @@ jobs:
   setup-build-publish-deploy:
     name: Configurar, Compilar, Publicar y Desplegar
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: https://example.com
     permissions:
       contents: "read"
       id-token: "write"
+
     steps:
       - name: Utilizar Node.js v20
         uses: actions/setup-node@v3
@@ -35,16 +38,21 @@ jobs:
       - name: git checkout
         uses: actions/checkout@v3
 
-      - name: Cargar variables de entorno desde el archivo .env
+      - name: Cargar variables de entorno desde el entorno de GitHub Actions
         run: |
-          echo "Cargando variables de entorno desde el archivo .env"
-          source ../.env
+          echo "Cargando variables de entorno desde el entorno de GitHub Actions"
+          export GKE_CLUSTER=$GKE_CLUSTER
+          export GKE_LOCATION=$GKE_LOCATION
+          export GKE_REPO=$GKE_REPO
+          export GKE_ZONE=$GKE_ZONE
+          export IMAGE=$IMAGE
+          export IMAGE_TAG=$IMAGE_TAG
+          export PROJECT_ID=$PROJECT_ID
 
-      - id: auth
-        name: Autenticar en Google Cloud
+      - name: Autenticar en Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
       - name: Verificar si el repositorio de artefactos ya existe
         id: check_repo_exists
@@ -55,33 +63,31 @@ jobs:
       - name: Crear repositorio en Artifact Registry si no existe
         if: steps.check_repo_exists.outcome != 'success'
         run: |
-          gcloud artifacts repositories create equipzilla --repository-format=docker --location=europe-west1
+          gcloud artifacts repositories create $$GKE_REPO --repository-format=docker --location=$GKE_LOCATION
 
       - name: Obtener credenciales de Kubernetes
-        run: gcloud container clusters get-credentials multi-actions --region europe-west1 --project thermal-loop-414917
+        run: gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_ZONE --project $PROJECT_ID
 
       - name: Configurar credenciales de GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
-          cluster_name: multi-actions
-          location: europe-west1
+          cluster_name: $GKE_CLUSTER
+          location: $GKE_ZONE
 
       - name: Autenticación en Docker hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # Construir la imagen de Docker
       - name: Compilar
-        run: |-
+        run: |
           docker build \
           --tag "$GKE_ZONE-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
-            .
+          .
 
-      # Publicar la imagen de Docker en Docker Hub
       - name: Publicar
-        run: |-
+        run: |
           docker push "$GKE_ZONE-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG"
 
   # # Desplegar la imagen de Docker en el clúster de GKE
