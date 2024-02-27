@@ -22,7 +22,7 @@ jobs:
   setup-build-publish-deploy:
     name: Configurar, Compilar, Publicar y Desplegar
     runs-on: ubuntu-latest
-
+    environment: production
     permissions:
       contents: "read"
       id-token: "write"
@@ -45,7 +45,7 @@ jobs:
         name: Autenticar en Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: $GCP_CREDENTIALS
+          credentials_json: "${{secrets.$GCP_CREDENTIALS}}"
 
       # Crear el repositorio en Artifact Registry
       - name: Crear repositorio en Artifact Registry
