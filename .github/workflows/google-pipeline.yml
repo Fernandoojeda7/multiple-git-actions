@@ -63,8 +63,8 @@ jobs:
       - name: Configurar credenciales de GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
-          cluster_name: $GKE_CLUSTER
-          location: $GKE_ZONE
+          cluster_name: multi-actions
+          location: europe-west1
 
       - name: Autenticación en Docker hub
         run: |
