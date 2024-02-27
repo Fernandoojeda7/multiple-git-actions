@@ -38,7 +38,7 @@ jobs:
       - name: Cargar variables de entorno desde el archivo .env
         run: |
           echo "Cargando variables de entorno desde el archivo .env"
-          source ../.env
+          source ../../.env
 
       - id: auth
         name: Autenticar en Google Cloud
