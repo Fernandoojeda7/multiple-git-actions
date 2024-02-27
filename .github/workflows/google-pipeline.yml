@@ -26,7 +26,6 @@ jobs:
     permissions:
       contents: "read"
       id-token: "write"
-
     steps:
       - name: Utilizar Node.js v20
         uses: actions/setup-node@v3
@@ -47,8 +46,14 @@ jobs:
         with:
           credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
 
-      # Crear el repositorio en Artifact Registry
-      - name: Crear repositorio en Artifact Registry
+      - name: Verificar si el repositorio de artefactos ya existe
+        id: check_repo_exists
+        run: |
+          gcloud artifacts repositories describe equipzilla --location=europe-west1 --format="value(name)" || exit 1
+        continue-on-error: true
+
+      - name: Crear repositorio en Artifact Registry si no existe
+        if: steps.check_repo_exists.outcome != 'success'
         run: |
           gcloud artifacts repositories create equipzilla --repository-format=docker --location=europe-west1
 
@@ -63,7 +68,7 @@ jobs:
 
       - name: Autenticación en Docker hub
         run: |
-          echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       # Construir la imagen de Docker
       - name: Compilar
@@ -79,12 +84,12 @@ jobs:
         run: |-
           docker push "$GKE_ZONE-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG"
 
-      # # Desplegar la imagen de Docker en el clúster de GKE
-      # - name: Desplegar
-      #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-      #   run: |-
-      #     kubectl apply -f app.yaml
-      #     kubectl apply -f service-node.yaml
-      #     kubectl apply -f basic-ingress.yaml
-      #     kubectl rollout status deployment/$DEPLOYMENT_NAME
-      #     kubectl get services -o wide
+  # # Desplegar la imagen de Docker en el clúster de GKE
+  # - name: Desplegar
+  #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+  #   run: |-
+  #     kubectl apply -f app.yaml
+  #     kubectl apply -f service-node.yaml
+  #     kubectl apply -f basic-ingress.yaml
+  #     kubectl rollout status deployment/$DEPLOYMENT_NAME
+  #     kubectl get services -o wide
