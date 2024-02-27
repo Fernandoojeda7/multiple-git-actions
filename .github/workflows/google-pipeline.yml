@@ -18,15 +18,6 @@ on:
       - hotfix/*
       - release/*
 
-env:
-  GAR_LOCATION: europe-north1
-  GKE_CLUSTER: multi-actions
-  GKE_ZONE: europe-north1
-  DEPLOYMENT_NAME: equipzilla-deployment
-  GKE_REPO: Equipzilla
-  IMAGE: equipzilla
-  IMAGE_TAG: test
-
 jobs:
   setup-build-publish-deploy:
     name: Configurar, Compilar, Publicar y Desplegar
@@ -45,6 +36,11 @@ jobs:
       - name: git checkout
         uses: actions/checkout@v3
 
+      - name: Cargar variables de entorno desde el archivo .env
+        run: |
+          echo "Cargando variables de entorno desde el archivo .env"
+          source .env
+
       - id: auth
         name: Autenticar en Google Cloud
         uses: google-github-actions/auth@v2
@@ -62,12 +58,12 @@ jobs:
       - name: Configurar credenciales de GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
-          cluster_name: ${{ env.GKE_CLUSTER }}
-          location: ${{ env.GKE_ZONE }}
+          cluster_name: $GKE_CLUSTER
+          location: $GKE_ZONE
 
       - name: Autenticación en Docker hub
         run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
       # Construir la imagen de Docker
       - name: Compilar
