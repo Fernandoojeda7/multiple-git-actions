@@ -45,12 +45,12 @@ jobs:
         name: Autenticar en Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: "$secrets.$GCP_CREDENTIALS"
+          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
 
       # Crear el repositorio en Artifact Registry
       - name: Crear repositorio en Artifact Registry
         run: |
-          gcloud artifacts repositories create $GAR_REPO --repository-format=docker --location=$GAR_LOCATION
+          gcloud artifacts repositories create $GAR_REPO --repository-format=docker --location=$GKE_ZONE
 
       - name: Obtener credenciales de Kubernetes
         run: gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_ZONE --project $PROJECT_ID
@@ -69,7 +69,7 @@ jobs:
       - name: Compilar
         run: |-
           docker build \
-          --tag "$GKE_LOCATION-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG" \
+          --tag "$GKE_ZONE-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
             .
@@ -77,7 +77,7 @@ jobs:
       # Publicar la imagen de Docker en Docker Hub
       - name: Publicar
         run: |-
-          docker push "$GKE_LOCATION-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG"
+          docker push "$GKE_ZONE-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG"
 
       # # Desplegar la imagen de Docker en el clúster de GKE
       # - name: Desplegar
