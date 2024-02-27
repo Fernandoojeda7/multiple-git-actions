@@ -38,17 +38,6 @@ jobs:
       - name: git checkout
         uses: actions/checkout@v3
 
-      - name: Cargar variables de entorno desde el entorno de GitHub Actions
-        run: |
-          echo "Cargando variables de entorno desde el entorno de GitHub Actions"
-          export GKE_CLUSTER=$GKE_CLUSTER
-          export GKE_LOCATION=$GKE_LOCATION
-          export GKE_REPO=$GKE_REPO
-          export GKE_ZONE=$GKE_ZONE
-          export IMAGE=$IMAGE
-          export IMAGE_TAG=$IMAGE_TAG
-          export PROJECT_ID=$PROJECT_ID
-
       - name: Autenticar en Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -63,16 +52,16 @@ jobs:
       - name: Crear repositorio en Artifact Registry si no existe
         if: steps.check_repo_exists.outcome != 'success'
         run: |
-          gcloud artifacts repositories create $$GKE_REPO --repository-format=docker --location=$GKE_LOCATION
+          gcloud artifacts repositories create ${{env.GKE_REPO}} --repository-format=docker --location=${{env.GKE_LOCATION}}
 
       - name: Obtener credenciales de Kubernetes
-        run: gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_ZONE --project $PROJECT_ID
+        run: gcloud container clusters get-credentials ${{env.GKE_CLUSTER}} --region ${{env.GKE_ZONE}} --project ${{env.PROJECT_ID}}
 
       - name: Configurar credenciales de GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
-          cluster_name: $GKE_CLUSTER
-          location: $GKE_ZONE
+          cluster_name: ${{env.GKE_CLUSTER}}
+          location: ${{env.GKE_ZONE}}
 
       - name: Autenticación en Docker hub
         run: |
@@ -81,14 +70,14 @@ jobs:
       - name: Compilar
         run: |
           docker build \
-          --tag "$GKE_ZONE-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG" \
+          --tag "${{env.GKE_ZONE}}-docker.pkg.dev/${{env.PROJECT_ID}}/${{env.GKE_REPO}}/${{env.IMAGE}}:${{env.IMAGE_TAG}}" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           .
 
       - name: Publicar
         run: |
-          docker push "$GKE_ZONE-docker.pkg.dev/$PROJECT_ID/$GKE_REPO/$IMAGE:$IMAGE_TAG"
+          docker push "${{env.GKE_ZONE}}-docker.pkg.dev/${{env.PROJECT_ID}}/${{env.GKE_REPO}}/${{env.IMAGE}}:${{env.IMAGE_TAG}}"
 
   # # Desplegar la imagen de Docker en el clúster de GKE
   # - name: Desplegar
