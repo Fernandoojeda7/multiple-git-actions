@@ -52,16 +52,16 @@ jobs:
       - name: Crear repositorio en Artifact Registry si no existe
         if: steps.check_repo_exists.outcome != 'success'
         run: |
-          gcloud artifacts repositories create ${{env.GKE_REPO}} --repository-format=docker --location=${{env.GKE_LOCATION}}
+          gcloud artifacts repositories create equipzilla --repository-format=docker --location=europe-west1
 
       - name: Obtener credenciales de Kubernetes
-        run: gcloud container clusters get-credentials ${{env.GKE_CLUSTER}} --region ${{env.GKE_ZONE}} --project ${{env.PROJECT_ID}}
+        run: gcloud container clusters get-credentials multi-actions --region europe-west1 --project thermal-loop-414917
 
       - name: Configurar credenciales de GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
-          cluster_name: ${{env.GKE_CLUSTER}}
-          location: ${{env.GKE_ZONE}}
+          cluster_name: multi-actions
+          location: europe-west1
 
       - name: Autenticación en Docker hub
         run: |
@@ -70,14 +70,14 @@ jobs:
       - name: Compilar
         run: |
           docker build \
-          --tag "${{env.GKE_ZONE}}-docker.pkg.dev/${{env.PROJECT_ID}}/${{env.GKE_REPO}}/${{env.IMAGE}}:${{env.IMAGE_TAG}}" \
+          --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:test" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           .
 
       - name: Publicar
         run: |
-          docker push "${{env.GKE_ZONE}}-docker.pkg.dev/${{env.PROJECT_ID}}/${{env.GKE_REPO}}/${{env.IMAGE}}:${{env.IMAGE_TAG}}"
+          docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:test"
 
   # # Desplegar la imagen de Docker en el clúster de GKE
   # - name: Desplegar
