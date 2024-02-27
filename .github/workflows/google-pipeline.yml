@@ -50,7 +50,7 @@ jobs:
       # Crear el repositorio en Artifact Registry
       - name: Crear repositorio en Artifact Registry
         run: |
-          gcloud artifacts repositories create Equipzilla --repository-format=docker --location=europe-west1
+          gcloud artifacts repositories create equipzilla --repository-format=docker --location=europe-west1
 
       - name: Obtener credenciales de Kubernetes
         run: gcloud container clusters get-credentials $GKE_CLUSTER --region $GKE_ZONE --project $PROJECT_ID
