@@ -1,0 +1,5 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/thermal-loop-414917/equipzillalatest", "."]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/thermal-loop-414917/equipzilla:latest"]

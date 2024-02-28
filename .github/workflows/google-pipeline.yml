@@ -21,6 +21,11 @@ jobs:
       id-token: "write"
 
     steps:
+      # Paso 1: Autenticación, checkout, y configuración de entorno
+      - name: Autenticarse con GitHub CLI usando token
+        run: |
+          echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
+
       - name: Utilizar Node.js v20
         uses: actions/setup-node@v3
         with:
@@ -58,9 +63,10 @@ jobs:
         run: |
           gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://europe-west1-docker.pkg.dev
 
+      # Paso 2: Compilar y Publicar
       - name: Compilar y Publicar
         run: |
-          if [ $GITHUB_REF = "refs/heads/main" ]; then
+          if [[ $GITHUB_REF = "refs/heads/main" ]]; then
             # Desplegar en producción
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest" \
@@ -69,7 +75,7 @@ jobs:
             .
 
             docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest"
-          elif [ $GITHUB_REF = "refs/heads/staging" ] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
+          elif [[ $GITHUB_REF = "refs/heads/staging" ]] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
             # Desplegar en entorno de staging
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging" \
@@ -78,7 +84,7 @@ jobs:
             .
 
             docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging"
-          elif [ $GITHUB_REF = "refs/heads/develop" ] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
+          elif [[ $GITHUB_REF = "refs/heads/develop" ]] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
             # Incorporar cambios en desarrollo
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:develop" \
@@ -90,6 +96,20 @@ jobs:
 
             if [[ $GITHUB_REF == refs/heads/feature/* ]]; then
               # Crear pull request de feature/* a develop
-              gh pr create --base develop --head $GITHUB_REF --title "Pull Request para incorporar cambios en $GITHUB_REF a develop"
+              gh pr create --base develop --head $GITHUB_REF --title "Pull Request para incorporar cambios en $GITHUB_REF a develop" --body "Descripción del pull request aquí"
             fi
+          fi
+
+      # Paso 3: Desplegar archivos de Kubernetes
+      - name: Desplegar archivos de Kubernetes
+        run: |
+          if [[ $GITHUB_REF = "refs/heads/main" ]]; then
+            kubectl apply -f main.yaml
+            kubectl apply -f main-ingress.yaml
+          elif [[ $GITHUB_REF = "refs/heads/staging" ]] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
+            kubectl apply -f staging.yaml
+            kubectl apply -f staging-ingress.yaml
+          elif [[ $GITHUB_REF = "refs/heads/develop" ]] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
+            kubectl apply -f develop.yaml
+            kubectl apply -f develop-ingress.yaml
           fi

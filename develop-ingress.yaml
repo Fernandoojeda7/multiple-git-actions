@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: develop-ingress
+spec:
+  rules:
+    - host: develop.example.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: equipzilla-develop
+                port:
+                  number: 80
