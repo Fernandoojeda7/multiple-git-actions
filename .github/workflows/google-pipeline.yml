@@ -21,6 +21,10 @@ jobs:
       id-token: "write"
 
     steps:
+      - name: Autenticarse con GitHub CLI usando token
+        run: |
+          echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
+
       - name: Utilizar Node.js v20
         uses: actions/setup-node@v3
         with:
@@ -60,7 +64,7 @@ jobs:
 
       - name: Compilar y Publicar
         run: |
-          if [ $GITHUB_REF = "refs/heads/main" ]; then
+          if [[ $GITHUB_REF = "refs/heads/main" ]]; then
             # Desplegar en producción
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest" \
@@ -69,7 +73,7 @@ jobs:
             .
 
             docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest"
-          elif [ $GITHUB_REF = "refs/heads/staging" ] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
+          elif [[ $GITHUB_REF = "refs/heads/staging" ]] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
             # Desplegar en entorno de staging
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging" \
@@ -78,7 +82,7 @@ jobs:
             .
 
             docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging"
-          elif [ $GITHUB_REF = "refs/heads/develop" ] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
+          elif [[ $GITHUB_REF = "refs/heads/develop" ]] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
             # Incorporar cambios en desarrollo
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:develop" \
@@ -90,6 +94,6 @@ jobs:
 
             if [[ $GITHUB_REF == refs/heads/feature/* ]]; then
               # Crear pull request de feature/* a develop
-              gh pr create --base develop --head $GITHUB_REF --title "Pull Request para incorporar cambios en $GITHUB_REF a develop"
-            fi
+              gh pr create --base develop --head $GITHUB_REF --title "Pull Request para incorporar cambios en $GITHUB_REF a develop" --body "Descripción del pull request aquí"
+          fi
           fi
