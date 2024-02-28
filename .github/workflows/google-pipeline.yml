@@ -106,13 +106,10 @@ jobs:
           if [[ $GITHUB_REF = "refs/heads/main" ]]; then
             kubectl apply -f main.yaml
             kubectl apply -f main-ingress.yaml
-            kubectl apply -f cloudbuild-main.yaml
           elif [[ $GITHUB_REF = "refs/heads/staging" ]] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
             kubectl apply -f staging.yaml
             kubectl apply -f staging-ingress.yaml
-            kubectl apply -f cloudbuild-staging.yaml
           elif [[ $GITHUB_REF = "refs/heads/develop" ]] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
             kubectl apply -f develop.yaml
             kubectl apply -f develop-ingress.yaml
-            kubectl apply -f cloudbuild-develop.yaml
           fi
