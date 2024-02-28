@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: equipzilla-main
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: equipzilla-main
+  template:
+    metadata:
+      labels:
+        app: equipzilla-main
+    spec:
+      containers:
+        - name: equipzilla
+          image: europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest
+          ports:
+            - containerPort: 3001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: equipzilla-main
+spec:
+  selector:
+    app: equipzilla-main
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3001
+  type: LoadBalancer
