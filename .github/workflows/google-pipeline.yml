@@ -4,19 +4,10 @@ on:
   push:
     branches:
       - main
-      - feature/*
-      - bugfix/*
-      - hotfix/*
-      - release/*
-    tags: # La clave 'tags' debe estar aquí para desencadenar el flujo de trabajo cuando se creen etiquetas
-      - "v*.*.*"
-
-  pull_request:
-    branches:
-      - feature/*
-      - bugfix/*
-      - hotfix/*
-      - release/*
+      - staging
+      - develop
+      - "feature/*"
+      - "skipe/*"
 
 jobs:
   setup-build-publish-deploy:
@@ -63,32 +54,42 @@ jobs:
           cluster_name: multi-actions
           location: europe-west1
 
-      # - name: Autenticación en Docker hub
-      #   run: |
-      #     echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
       - name: Autenticarse en Docker para Artifact Registry
         run: |
           gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://europe-west1-docker.pkg.dev
 
-      - name: Compilar
+      - name: Compilar y Publicar
         run: |
-          docker build \
-          --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:test" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
-          .
+          if [ $GITHUB_REF = "refs/heads/main" ]; then
+            # Desplegar en producción
+            docker build \
+            --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest" \
+            --build-arg GITHUB_SHA="$GITHUB_SHA" \
+            --build-arg GITHUB_REF="$GITHUB_REF" \
+            .
 
-      - name: Publicar
-        run: |
-          docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:test"
+            docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest"
+          elif [ $GITHUB_REF = "refs/heads/staging" ] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
+            # Desplegar en entorno de staging
+            docker build \
+            --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging" \
+            --build-arg GITHUB_SHA="$GITHUB_SHA" \
+            --build-arg GITHUB_REF="$GITHUB_REF" \
+            .
 
-  # # Desplegar la imagen de Docker en el clúster de GKE
-  # - name: Desplegar
-  #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-  #   run: |-
-  #     kubectl apply -f app.yaml
-  #     kubectl apply -f service-node.yaml
-  #     kubectl apply -f basic-ingress.yaml
-  #     kubectl rollout status deployment/$DEPLOYMENT_NAME
-  #     kubectl get services -o wide
+            docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging"
+          elif [ $GITHUB_REF = "refs/heads/develop" ] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
+            # Incorporar cambios en desarrollo
+            docker build \
+            --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:develop" \
+            --build-arg GITHUB_SHA="$GITHUB_SHA" \
+            --build-arg GITHUB_REF="$GITHUB_REF" \
+            .
+
+            docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:develop"
+
+            if [[ $GITHUB_REF == refs/heads/feature/* ]]; then
+              # Crear pull request de feature/* a develop
+              gh pr create --base develop --head $GITHUB_REF --title "Pull Request para incorporar cambios en $GITHUB_REF a develop"
+            fi
+          fi
