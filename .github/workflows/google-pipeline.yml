@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Set GH_TOKEN environment variable
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }} # Asegúrate de haber configurado el secreto GH_TOKEN en la configuración de tu repositorio
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: echo "Configurando GH_TOKEN..."
 
       - name: Utilizar Node.js v20
@@ -65,7 +65,7 @@ jobs:
 
       - name: Compilar y Publicar
         run: |
-          if [ $GITHUB_REF = "refs/heads/main" ]; then
+          if [[ $GITHUB_REF = "refs/heads/main" ]]; then
             # Desplegar en producción
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest" \
@@ -74,7 +74,7 @@ jobs:
             .
 
             docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:latest"
-          elif [ $GITHUB_REF = "refs/heads/staging" ] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
+          elif [[ $GITHUB_REF = "refs/heads/staging" ]] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
             # Desplegar en entorno de staging
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging" \
@@ -83,7 +83,7 @@ jobs:
             .
 
             docker push "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:staging"
-          elif [ $GITHUB_REF = "refs/heads/develop" ] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
+          elif [[ $GITHUB_REF = "refs/heads/develop" ]] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
             # Incorporar cambios en desarrollo
             docker build \
             --tag "europe-west1-docker.pkg.dev/thermal-loop-414917/equipzilla/equipzilla:develop" \
