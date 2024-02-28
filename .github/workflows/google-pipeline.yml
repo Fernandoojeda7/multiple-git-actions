@@ -21,9 +21,9 @@ jobs:
       id-token: "write"
 
     steps:
-      - name: Set GH_TOKEN environment variable
-      - run: |
-          echo ${{ secrets.GB_TOKEN }} | gh auth login --with-token
+      - name: Autenticarse con GitHub CLI usando token
+        run: |
+          echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
 
       - name: Utilizar Node.js v20
         uses: actions/setup-node@v3
