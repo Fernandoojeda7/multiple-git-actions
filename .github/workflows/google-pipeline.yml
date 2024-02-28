@@ -21,6 +21,11 @@ jobs:
       id-token: "write"
 
     steps:
+      - name: Set GH_TOKEN environment variable
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }} # Asegúrate de haber configurado el secreto GH_TOKEN en la configuración de tu repositorio
+        run: echo "Configurando GH_TOKEN..."
+
       - name: Utilizar Node.js v20
         uses: actions/setup-node@v3
         with:
