@@ -21,6 +21,7 @@ jobs:
       id-token: "write"
 
     steps:
+      # Paso 1: Autenticación, checkout, y configuración de entorno
       - name: Autenticarse con GitHub CLI usando token
         run: |
           echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
@@ -62,6 +63,7 @@ jobs:
         run: |
           gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://europe-west1-docker.pkg.dev
 
+      # Paso 2: Compilar y Publicar
       - name: Compilar y Publicar
         run: |
           if [[ $GITHUB_REF = "refs/heads/main" ]]; then
@@ -95,5 +97,22 @@ jobs:
             if [[ $GITHUB_REF == refs/heads/feature/* ]]; then
               # Crear pull request de feature/* a develop
               gh pr create --base develop --head $GITHUB_REF --title "Pull Request para incorporar cambios en $GITHUB_REF a develop" --body "Descripción del pull request aquí"
+            fi
           fi
+
+      # Paso 3: Desplegar archivos de Kubernetes
+      - name: Desplegar archivos de Kubernetes
+        run: |
+          if [[ $GITHUB_REF = "refs/heads/main" ]]; then
+            kubectl apply -f main.yaml
+            kubectl apply -f main-ingress.yaml
+            kubectl apply -f cloudbuild-main.yaml
+          elif [[ $GITHUB_REF = "refs/heads/staging" ]] || [[ $GITHUB_REF == refs/heads/skipe/* ]]; then
+            kubectl apply -f staging.yaml
+            kubectl apply -f staging-ingress.yaml
+            kubectl apply -f cloudbuild-staging.yaml
+          elif [[ $GITHUB_REF = "refs/heads/develop" ]] || [[ $GITHUB_REF == refs/heads/feature/* ]]; then
+            kubectl apply -f develop.yaml
+            kubectl apply -f develop-ingress.yaml
+            kubectl apply -f cloudbuild-develop.yaml
           fi
