@@ -43,10 +43,6 @@ jobs:
       - name: Configurar kubectl con el nuevo complemento
         run: export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 
-      # Actualizar gcloud a la última versión
-      - name: Actualizar gcloud
-        run: gcloud components update
-
       - name: Verificar si el repositorio de artefactos ya existe
         id: check_repo_exists
         run: |
