@@ -39,22 +39,6 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-      # Instalación y verificación del complemento gke-gcloud-auth-plugin
-      - name: Instalar gke-gcloud-auth-plugin
-        run: |
-          gcloud components install gke-gcloud-auth-plugin
-
-      - name: Verificar la instalación de gke-gcloud-auth-plugin
-        run: gcloud components list
-
-      # Configuración de kubectl para usar el nuevo complemento
-      - name: Configurar kubectl con el nuevo complemento
-        run: export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-
-      # Actualizar gcloud a la última versión
-      - name: Actualizar gcloud
-        run: gcloud components update
-
       - name: Verificar si el repositorio de artefactos ya existe
         id: check_repo_exists
         run: |
