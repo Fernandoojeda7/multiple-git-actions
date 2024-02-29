@@ -13,4 +13,4 @@ spec:
               service:
                 name: equipzilla-develop
                 port:
-                  number: 80
+                  number: 3001
