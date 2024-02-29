@@ -4,7 +4,7 @@ metadata:
   name: develop-ingress
 spec:
   rules:
-    - host: 35.187.97.20
+    - host: develop.example.com
       http:
         paths:
           - pathType: Prefix
