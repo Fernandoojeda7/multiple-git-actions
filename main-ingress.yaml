@@ -4,7 +4,7 @@ metadata:
   name: main-ingress
 spec:
   rules:
-    - host: http://34.38.80.162/
+    - host: 34.38.80.162
       http:
         paths:
           - pathType: Prefix
