@@ -39,15 +39,10 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-        # Exportar variable de entorno USE_GKE_GCLOUD_AUTH_PLUGIN
-      - name: Exportar variable de entorno USE_GKE_GCLOUD_AUTH_PLUGIN
-        run: export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-
-      # Instalación y verificación del complemento gke-gcloud-auth-plugin
       - name: Instalar gke-gcloud-auth-plugin
         run: |
+          export USE_GKE_GCLOUD_AUTH_PLUGIN=True
           gcloud components install gke-gcloud-auth-plugin
-          gcloud components list
 
       - name: Verificar si el repositorio de artefactos ya existe
         id: check_repo_exists
