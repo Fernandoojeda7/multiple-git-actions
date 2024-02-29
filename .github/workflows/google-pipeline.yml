@@ -39,14 +39,13 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-        # Instalación del complemento gke-gcloud-auth-plugin
+      # Instalación y verificación del complemento gke-gcloud-auth-plugin
       - name: Instalar gke-gcloud-auth-plugin
         run: |
           gcloud components install gke-gcloud-auth-plugin
 
-      # Verificar la instalación
       - name: Verificar la instalación de gke-gcloud-auth-plugin
-        run: gke-gcloud-auth-plugin --version
+        run: gcloud components list
 
       # Configuración de kubectl para usar el nuevo complemento
       - name: Configurar kubectl con el nuevo complemento
