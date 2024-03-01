@@ -51,7 +51,9 @@ jobs:
           gcloud artifacts repositories create equipzilla --repository-format=docker --location=europe-west1
 
       - name: Obtener credenciales de Kubernetes
-        run: gcloud container clusters get-credentials multi-actions --region europe-west1 --project thermal-loop-414917
+        run: |
+          gcloud container clusters get-credentials multi-actions --region europe-west1 --project thermal-loop-414917
+          kubectl config use-context gke_thermal-loop-414917_europe-west1_multi-actions
 
       - name: Configurar credenciales de GKE
         uses: google-github-actions/get-gke-credentials@v1
